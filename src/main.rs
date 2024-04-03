@@ -14,7 +14,8 @@ use tikv_jemallocator::Jemalloc;
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 
-const NUM_THREADS: usize = 100;
+const NUM_TASKS: usize = 100;
+const BLOCK_SIZE: usize = 1024 * 1024;
 const MAX_SLEEP_TIME: u64 = 1000;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -25,7 +26,7 @@ struct BigData {
 #[tokio::main]
 async fn main() {
     let mut set = JoinSet::new();
-    for _ in 1..NUM_THREADS {
+    for _ in 1..NUM_TASKS {
         set.spawn(async {
             let storage_mode = StorageMode::Development(1);
             let transmissions: DataMap<u64, BigData> =
@@ -37,9 +38,12 @@ async fn main() {
             loop {
                 for _ in 0..1000 {
                     let big_data = BigData {
-                        data: (0..1000).map(|_| rng.gen()).collect(),
+                        data: (0..BLOCK_SIZE).map(|_| rng.gen()).collect(),
                     };
                     transmissions.insert(rng.gen(), big_data.clone()).unwrap();
+                    let big_data = BigData {
+                        data: (0..BLOCK_SIZE).map(|_| rng.gen()).collect(),
+                    };
                     blocks.insert(rng.gen(), big_data).unwrap();
                 }
                 let sleep_time = rng.gen_range(200..MAX_SLEEP_TIME);
