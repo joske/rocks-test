@@ -10,6 +10,8 @@ serde = { version = "1.0", features = ["derive"] }
 parking_lot = "0.12"
 snarkvm = { path = "../snarkVM", features = ["rocks"] }
 tikv-jemallocator = "0.5"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dependencies.aleo-std-storage]
 version = "0.1.7"
